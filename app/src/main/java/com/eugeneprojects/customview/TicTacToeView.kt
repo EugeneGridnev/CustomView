@@ -17,7 +17,9 @@ class TicTacToeView(
 
     var ticTacToeField: TicTacToeField? = null
         set(value) {
+            field?.liseners?.remove(listener)
             field = value
+            field?.liseners?.add(listener)
             requestLayout()
             invalidate()
         }
@@ -38,6 +40,16 @@ class TicTacToeView(
         }
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        ticTacToeField?.liseners?.add(listener)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        ticTacToeField?.liseners?.remove(listener)
+    }
+
     private fun initAttributes(attributesSet: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
         val typedArray = context.obtainStyledAttributes(attributesSet, R.styleable.TicTacToeView, defStyleAttr, defStyleRes)
         player1Color = typedArray.getColor(R.styleable.TicTacToeView_player1Color, PLAYER1_DEFAULT_COLOR)
@@ -51,6 +63,10 @@ class TicTacToeView(
         player1Color = PLAYER1_DEFAULT_COLOR
         player2Color = PLAYER2_DEFAULT_COLOR
         gridColor = GRID_DEFAULT_COLOR
+    }
+
+    private val listener: OnFieldChangedListener = {
+
     }
 
     companion object {
