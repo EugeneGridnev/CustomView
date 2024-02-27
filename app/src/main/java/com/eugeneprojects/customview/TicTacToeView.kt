@@ -7,11 +7,14 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.View
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.properties.Delegates
 
+typealias OnCellActionListener = (row: Int, column: Int, field: TicTacToeField) -> Unit
 
 class TicTacToeView(
     context: Context,
@@ -22,13 +25,15 @@ class TicTacToeView(
 
     var ticTacToeField: TicTacToeField? = null
         set(value) {
-            field?.liseners?.remove(listener)
+            field?.listeners?.remove(listener)
             field = value
-            field?.liseners?.add(listener)
+            value?.listeners?.add(listener)
             updateViewSize()
             requestLayout()
             invalidate()
         }
+
+    var actionListener: OnCellActionListener? = null
 
     private var player1Color by Delegates.notNull<Int>()
     private var player2Color by Delegates.notNull<Int>()
@@ -42,7 +47,7 @@ class TicTacToeView(
     private var cellSize: Float = 0f
     private var cellPadding: Float = 0f
 
-    private val cellRect = RectF(0f,0f,0f,0f)
+    private val cellRect = RectF()
 
     constructor(context: Context, attributesSet: AttributeSet?, defStyleAttr: Int) : this(context, attributesSet, defStyleAttr, R.style.DefaultTicTacToeFieldStyle)
     constructor(context: Context, attributesSet: AttributeSet?) : this(context, attributesSet, R.attr.ticTacToeFieldStyle)
@@ -55,24 +60,31 @@ class TicTacToeView(
             initDefaultColor()
         }
         initPaints()
+
+        if (isInEditMode) {
+            ticTacToeField = TicTacToeField(10, 10)
+            ticTacToeField?.setCell(4, 2, Cell.PLAYER_1)
+            ticTacToeField?.setCell(3, 3, Cell.PLAYER_2)
+        }
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        ticTacToeField?.liseners?.add(listener)
+        ticTacToeField?.listeners?.add(listener)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        ticTacToeField?.liseners?.remove(listener)
+        ticTacToeField?.listeners?.remove(listener)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+
         val minWidth = suggestedMinimumWidth + paddingLeft + paddingRight
         val minHeight = suggestedMinimumHeight + paddingTop + paddingBottom
 
         val desiredCellSizeInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-            DESIRED_CELL_SIZE.toFloat(),
+            DESIRED_CELL_SIZE,
             resources.displayMetrics).toInt()
         val rows = ticTacToeField?.rows ?: 0
         val columns = ticTacToeField?.columns ?: 0
@@ -101,6 +113,33 @@ class TicTacToeView(
 
         drawGrid(canvas)
         drawCells(canvas)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        val field = this.ticTacToeField ?: return false
+        when(event?.action) {
+            MotionEvent.ACTION_DOWN -> {
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                val row = getRow(event)
+                val column = getColumn(event)
+                if (row >= 0 && column >= 0 && row < field.rows && column < field.columns) {
+                    actionListener?.invoke(row, column, field)
+                    return true
+                }
+                return false
+            }
+        }
+        return super.onTouchEvent(event)
+    }
+
+    private fun getRow(event: MotionEvent): Int {
+        return floor((event.y - fieldRect.top) / cellSize).toInt()
+    }
+
+    private fun getColumn(event: MotionEvent): Int {
+        return floor((event.x - fieldRect.left) / cellSize).toInt()
     }
 
     private fun drawGrid(canvas: Canvas) {
@@ -138,8 +177,8 @@ class TicTacToeView(
     private fun getCellRect(row: Int, column: Int): RectF {
         cellRect.left = fieldRect.left + column * cellSize + cellPadding
         cellRect.top = fieldRect.top + row * cellSize + cellPadding
-        cellRect.right = fieldRect.left + cellSize - cellPadding * 2
-        cellRect.bottom = fieldRect.top + cellSize - cellPadding * 2
+        cellRect.right = cellRect.left + cellSize - cellPadding * 2
+        cellRect.bottom = cellRect.top + cellSize - cellPadding * 2
         return cellRect
     }
 
@@ -209,7 +248,7 @@ class TicTacToeView(
     }
 
     private val listener: OnFieldChangedListener = {
-
+        invalidate()
     }
 
     companion object {
@@ -217,6 +256,6 @@ class TicTacToeView(
         const val PLAYER2_DEFAULT_COLOR = Color.RED
         const val GRID_DEFAULT_COLOR = Color.GRAY
 
-        const val DESIRED_CELL_SIZE = 50
+        const val DESIRED_CELL_SIZE = 50f
     }
 }
