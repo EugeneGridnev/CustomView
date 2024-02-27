@@ -42,6 +42,8 @@ class TicTacToeView(
     private var cellSize: Float = 0f
     private var cellPadding: Float = 0f
 
+    private val cellRect = RectF(0f,0f,0f,0f)
+
     constructor(context: Context, attributesSet: AttributeSet?, defStyleAttr: Int) : this(context, attributesSet, defStyleAttr, R.style.DefaultTicTacToeFieldStyle)
     constructor(context: Context, attributesSet: AttributeSet?) : this(context, attributesSet, R.attr.ticTacToeFieldStyle)
     constructor(context: Context) : this(context, null)
@@ -119,7 +121,36 @@ class TicTacToeView(
     }
 
     private fun drawCells(canvas: Canvas) {
+        val field = this.ticTacToeField ?: return
+        for (row in 0 until field.rows) {
+            for (column in 0 until field.columns) {
+                val cell = field.getCell(row, column)
+                if (cell == Cell.PLAYER_1) {
+                    drawPlayer1(canvas, row, column)
+                } else if (cell == Cell.PLAYER_2) {
+                    drawPlayer2(canvas, row, column)
+                }
+            }
+        }
+    }
 
+    private fun getCellRect(row: Int, column: Int): RectF {
+        cellRect.left = fieldRect.left + column * cellSize + cellPadding
+        cellRect.top = fieldRect.top + row * cellSize + cellPadding
+        cellRect.right = fieldRect.left + cellSize - cellPadding * 2
+        cellRect.bottom = fieldRect.top + cellSize - cellPadding * 2
+        return cellRect
+    }
+
+    private fun drawPlayer1(canvas: Canvas, row: Int, column: Int) {
+        val cellRect = getCellRect(row, column)
+        canvas.drawLine(cellRect.left, cellRect.top, cellRect.right, cellRect.bottom, player1Paint)
+        canvas.drawLine(cellRect.right, cellRect.top, cellRect.left, cellRect.bottom, player1Paint)
+    }
+
+    private fun drawPlayer2(canvas: Canvas, row: Int, column: Int) {
+        val cellRect = getCellRect(row, column)
+        canvas.drawCircle(cellRect.centerX(), cellRect.centerY(), cellRect.width() / 2, player2Paint)
     }
 
     private fun updateViewSize() {
