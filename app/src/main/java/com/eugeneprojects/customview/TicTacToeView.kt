@@ -1,7 +1,9 @@
 package com.eugeneprojects.customview
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -31,6 +33,10 @@ class TicTacToeView(
     private var player1Color by Delegates.notNull<Int>()
     private var player2Color by Delegates.notNull<Int>()
     private var gridColor by Delegates.notNull<Int>()
+
+    private lateinit var player1Paint : Paint
+    private lateinit var player2Paint : Paint
+    private lateinit var gridPaint : Paint
 
     private val fieldRect = RectF(0f,0f,0f,0f)
     private var cellSize: Float = 0f
@@ -83,6 +89,25 @@ class TicTacToeView(
 
     }
 
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        if (ticTacToeField == null) return
+        if (cellSize == 0f) return
+        if (fieldRect.width() <= 0) return
+        if (fieldRect.height() <= 0) return
+
+        drawGrid(canvas)
+        drawCells(canvas)
+    }
+
+    private fun drawGrid(canvas: Canvas) {
+
+    }
+
+    private fun drawCells(canvas: Canvas) {
+
+    }
+
     private fun updateViewSize() {
         val field = this.ticTacToeField ?: return
 
@@ -102,6 +127,24 @@ class TicTacToeView(
         fieldRect.top = paddingTop + (safeHeight - fieldHeight) / 2
         fieldRect.right = fieldRect.left + fieldWidth
         fieldRect.bottom = fieldRect.top + fieldHeight
+    }
+
+    private fun initPaints() {
+        player1Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        player1Paint.color = player1Color
+        player1Paint.style = Paint.Style.STROKE
+        player1Paint.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, resources.displayMetrics)
+
+        player2Paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        player2Paint.color = player2Color
+        player2Paint.style = Paint.Style.STROKE
+        player2Paint.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, resources.displayMetrics)
+
+        gridPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        gridPaint.color = gridColor
+        gridPaint.style = Paint.Style.STROKE
+        gridPaint.strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, resources.displayMetrics)
+
     }
 
     private fun initAttributes(attributesSet: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
