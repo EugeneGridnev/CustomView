@@ -101,7 +101,21 @@ class TicTacToeView(
     }
 
     private fun drawGrid(canvas: Canvas) {
+        val field = this.ticTacToeField ?: return
 
+        val xStart = fieldRect.left
+        val xEnd = fieldRect.right
+        for (i in 0..field.rows) {
+            val y = fieldRect.top + cellSize * i
+            canvas.drawLine(xStart, y, xEnd, y, gridPaint)
+        }
+
+        val yStart = fieldRect.top
+        val yEnd = fieldRect.bottom
+        for (i in 0..field.columns) {
+            val x = fieldRect.left + cellSize * i
+            canvas.drawLine(x, yStart, x, yEnd, gridPaint)
+        }
     }
 
     private fun drawCells(canvas: Canvas) {
