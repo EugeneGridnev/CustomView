@@ -54,6 +54,7 @@ class TicTacToeView(
         } else {
             initDefaultColor()
         }
+        initPaints()
     }
 
     override fun onAttachedToWindow() {
