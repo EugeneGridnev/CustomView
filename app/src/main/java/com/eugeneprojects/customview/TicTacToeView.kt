@@ -15,6 +15,13 @@ class TicTacToeView(
     defStyleRes: Int
 ) : View(context, attributesSet, defStyleAttr, defStyleRes) {
 
+    var ticTacToeField: TicTacToeField? = null
+        set(value) {
+            field = value
+            requestLayout()
+            invalidate()
+        }
+
     private var player1Color by Delegates.notNull<Int>()
     private var player2Color by Delegates.notNull<Int>()
     private var gridColor by Delegates.notNull<Int>()
