@@ -5,6 +5,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -40,11 +42,6 @@ class TicTacToeView(
     private var player2Color by Delegates.notNull<Int>()
     private var gridColor by Delegates.notNull<Int>()
 
-    private lateinit var player1Paint : Paint
-    private lateinit var player2Paint : Paint
-    private lateinit var currentCellPaint : Paint
-    private lateinit var gridPaint : Paint
-
     private val fieldRect = RectF(0f,0f,0f,0f)
     private var cellSize: Float = 0f
     private var cellPadding: Float = 0f
@@ -53,6 +50,11 @@ class TicTacToeView(
 
     private var currentRow: Int = -1
     private var currentColumn: Int = -1
+
+    private lateinit var player1Paint : Paint
+    private lateinit var player2Paint : Paint
+    private lateinit var currentCellPaint : Paint
+    private lateinit var gridPaint : Paint
 
     constructor(context: Context, attributesSet: AttributeSet?, defStyleAttr: Int) : this(context, attributesSet, defStyleAttr, R.style.DefaultTicTacToeFieldStyle)
     constructor(context: Context, attributesSet: AttributeSet?) : this(context, attributesSet, R.attr.ticTacToeFieldStyle)
@@ -85,6 +87,21 @@ class TicTacToeView(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         ticTacToeField?.listeners?.remove(listener)
+    }
+
+    override fun onSaveInstanceState(): Parcelable? {
+        val superState = super.onSaveInstanceState()!!
+        val savedState = SavedState(superState)
+        savedState.currentRow = currentRow
+        savedState.currentColumn = currentColumn
+        return savedState
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        val savedState = state as SavedState
+        super.onRestoreInstanceState(savedState.superState)
+        currentRow = savedState.currentRow
+        currentColumn = savedState.currentColumn
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -327,6 +344,33 @@ class TicTacToeView(
 
     private val listener: OnFieldChangedListener = {
         invalidate()
+    }
+
+    class SavedState : BaseSavedState {
+
+        var currentRow by Delegates.notNull<Int>()
+        var currentColumn by Delegates.notNull<Int>()
+
+        constructor(superState: Parcelable) : super(superState)
+        constructor(parcel: Parcel) : super(parcel) {
+            currentRow = parcel.readInt()
+            currentColumn = parcel.readInt()
+        }
+
+        override fun writeToParcel(out: Parcel, flags: Int) {
+            super.writeToParcel(out, flags)
+            out.writeInt(currentRow)
+            out.writeInt(currentColumn)
+        }
+
+        companion object {
+            @JvmField
+            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel): SavedState = SavedState(source)
+                override fun newArray(size: Int): Array<SavedState?> = Array(size) { null }
+            }
+        }
+
     }
 
     companion object {
